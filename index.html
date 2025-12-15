@@ -459,14 +459,15 @@ const greeting = 'Hello, World!';
     </div>
 
     <script>
-        const markdownInput = document.getElementById('markdownInput');
-        const preview = document.getElementById('preview');
         let currentTheme = '#667eea';
 
         marked.setOptions({
             breaks: true,
             gfm: true
         });
+
+        const markdownInput = document.getElementById('markdownInput');
+        const preview = document.getElementById('preview');
 
         const templates = {
             'Resume': `# John Doe
@@ -569,10 +570,16 @@ Explain how the project addresses the problem.
         };
 
         function updatePreview() {
-            const markdown = markdownInput.value;
-            const html = marked.parse(markdown);
-            preview.innerHTML = html;
-            updateStats();
+            try {
+                const markdown = markdownInput.value || '';
+                const html = marked.parse(markdown);
+                if (preview) {
+                    preview.innerHTML = html;
+                }
+                updateStats();
+            } catch (e) {
+                console.error('Preview error:', e);
+            }
         }
 
         function updateStats() {
@@ -592,45 +599,71 @@ Explain how the project addresses the problem.
 
             const html = marked.parse(markdown);
             const filename = document.getElementById('filename').value || 'document';
-            const author = document.getElementById('author').value;
             
             const element = document.createElement('div');
-            element.innerHTML = html;
             element.style.padding = '30px';
             element.style.fontFamily = 'Arial, sans-serif';
             element.style.lineHeight = '1.6';
             element.style.color = '#333';
+            element.style.backgroundColor = 'white';
+            element.innerHTML = html;
 
-            const h1s = element.querySelectorAll('h1');
-            h1s.forEach(h => {
+            // Style all elements
+            element.querySelectorAll('h1').forEach(h => {
                 h.style.fontSize = '28px';
                 h.style.color = currentTheme;
+                h.style.marginTop = '20px';
+                h.style.marginBottom = '15px';
             });
 
-            const h2s = element.querySelectorAll('h2');
-            h2s.forEach(h => {
+            element.querySelectorAll('h2').forEach(h => {
                 h.style.fontSize = '22px';
                 h.style.color = currentTheme;
+                h.style.marginTop = '18px';
+                h.style.marginBottom = '12px';
             });
 
-            const codes = element.querySelectorAll('code');
-            codes.forEach(c => {
+            element.querySelectorAll('h3').forEach(h => {
+                h.style.fontSize = '18px';
+                h.style.color = currentTheme;
+                h.style.marginTop = '16px';
+                h.style.marginBottom = '10px';
+            });
+
+            element.querySelectorAll('p').forEach(p => {
+                p.style.marginBottom = '12px';
+            });
+
+            element.querySelectorAll('code').forEach(c => {
                 c.style.backgroundColor = '#f4f4f4';
                 c.style.padding = '2px 6px';
                 c.style.borderRadius = '4px';
                 c.style.fontFamily = 'monospace';
             });
 
-            const blockquotes = element.querySelectorAll('blockquote');
-            blockquotes.forEach(b => {
+            element.querySelectorAll('pre').forEach(p => {
+                p.style.backgroundColor = '#f4f4f4';
+                p.style.padding = '15px';
+                p.style.borderRadius = '6px';
+                p.style.overflow = 'auto';
+                p.style.marginBottom = '12px';
+            });
+
+            element.querySelectorAll('blockquote').forEach(b => {
                 b.style.borderLeft = `4px solid ${currentTheme}`;
                 b.style.paddingLeft = '15px';
                 b.style.color = '#666';
+                b.style.marginLeft = '0';
+                b.style.marginBottom = '12px';
             });
 
-            const links = element.querySelectorAll('a');
-            links.forEach(a => {
+            element.querySelectorAll('a').forEach(a => {
                 a.style.color = currentTheme;
+            });
+
+            element.querySelectorAll('ul, ol').forEach(l => {
+                l.style.marginLeft = '20px';
+                l.style.marginBottom = '12px';
             });
 
             const pageSize = document.getElementById('pagesize').value;
@@ -638,7 +671,7 @@ Explain how the project addresses the problem.
                 margin: 15,
                 filename: `${filename}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: pageSize, orientation: 'portrait' }
             };
 
@@ -683,8 +716,11 @@ Explain how the project addresses the problem.
             event.target.classList.add('active');
         }
 
+        // Initialize
         markdownInput.addEventListener('input', updatePreview);
-        updatePreview();
+        setTimeout(() => {
+            updatePreview();
+        }, 100);
     </script>
 </body>
 </html>
